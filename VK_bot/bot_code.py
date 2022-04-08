@@ -34,7 +34,7 @@ def send_photo(vk, peer_id, owner_id, photo_id, access_key):
     vk.method('messages.send', {'peer_id': peer_id, 'attachment': attachment, 'random_id': randrange(10 ** 7), })
 
 
-def start():
+def start(): # Входные данные: необходимо ввести имя пользователя или его id в ВК, для которого мы ищем пару.
     global state, user_info
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
@@ -44,10 +44,10 @@ def start():
                     write_msg(event.user_id, f"Привет, {event.user_id}")
                 elif request == "заново":
                     state = 'init'
-                elif 'bl' in request:  # Черный список (в формате: bl people id partner_id)
+                elif 'bl' in request:  # Черный список (в формате: bl people_id partner_id)
                     add_to_black_list(request.split()[1], request.split()[2])
                     write_msg(event.user_id, f"Пользователь ID{request.split()[2]} добавлен в черный список")
-                elif 'iz' in request:  # Список избранных (в формате: iz people id partner_id)
+                elif 'iz' in request:  # Список избранных (в формате: iz people_id partner_id)
                     add_to_favourite_list(request.split()[1], request.split()[2])
                     write_msg(event.user_id, f"Пользователь ID{request.split()[2]} добавлен в список избранных")
                 else:

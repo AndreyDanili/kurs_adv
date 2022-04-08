@@ -63,7 +63,7 @@ class VkUser:
                          f"'{user_info['relation']}'"
         if not duplicate_people(user_info['id']):
             insert_user_info(user_info_list)
-        return True
+        return
 
     @staticmethod
     def get_search_users():

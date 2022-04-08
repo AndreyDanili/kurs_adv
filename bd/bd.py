@@ -3,49 +3,51 @@ import sqlalchemy
 engine = sqlalchemy.create_engine('postgresql://my_user:123456@localhost:5432/kurs_adv_db')
 conn = engine.connect()
 
-conn.execute("""CREATE TABLE IF NOT EXISTS people (
-            id serial PRIMARY KEY,
-            name varchar(40) NOT NULL,
-            bdate varchar(40) NOT NULL,
-            sex integer NOT NULL,
-            city varchar(40) NOT NULL,
-            relation integer NOT NULL
-            );"""
-             )
 
-conn.execute("""CREATE TABLE IF NOT EXISTS partner (
-            id serial PRIMARY KEY,
-            name varchar(40) NOT NULL,
-            bdate varchar(40) NOT NULL,
-            sex integer NOT NULL,
-            city varchar(40) NOT NULL,
-            relation integer NOT NULL,
-            photo_one varchar(999),
-            photo_two varchar(999),
-            photo_three varchar(999)
-            );"""
-             )
+def create_table():
+    conn.execute("""CREATE TABLE IF NOT EXISTS people (
+                id serial PRIMARY KEY,
+                name varchar(40) NOT NULL,
+                bdate varchar(40) NOT NULL,
+                sex integer NOT NULL,
+                city varchar(40) NOT NULL,
+                relation integer NOT NULL
+                );"""
+                 )
 
-conn.execute("""CREATE TABLE IF NOT EXISTS people_partner (
-            id serial PRIMARY KEY,
-            people_id integer NOT NULL REFERENCES people(id),
-            partner_id integer NOT NULL REFERENCES partner(id)
-            );"""
-             )
+    conn.execute("""CREATE TABLE IF NOT EXISTS partner (
+                id serial PRIMARY KEY,
+                name varchar(40) NOT NULL,
+                bdate varchar(40) NOT NULL,
+                sex integer NOT NULL,
+                city varchar(40) NOT NULL,
+                relation integer NOT NULL,
+                photo_one varchar(999),
+                photo_two varchar(999),
+                photo_three varchar(999)
+                );"""
+                 )
 
-conn.execute("""CREATE TABLE IF NOT EXISTS favourite (
-            id serial PRIMARY KEY,
-            people_id integer NOT NULL REFERENCES people(id),
-            partner_id integer NOT NULL REFERENCES partner(id)
-            );"""
-             )
+    conn.execute("""CREATE TABLE IF NOT EXISTS people_partner (
+                id serial PRIMARY KEY,
+                people_id integer NOT NULL REFERENCES people(id),
+                partner_id integer NOT NULL REFERENCES partner(id)
+                );"""
+                 )
 
-conn.execute("""CREATE TABLE IF NOT EXISTS blacklist (
-            id serial PRIMARY KEY,
-            people_id integer NOT NULL REFERENCES people(id),
-            partner_id integer NOT NULL REFERENCES partner(id)
-            );"""
-             )
+    conn.execute("""CREATE TABLE IF NOT EXISTS favourite (
+                id serial PRIMARY KEY,
+                people_id integer NOT NULL REFERENCES people(id),
+                partner_id integer NOT NULL REFERENCES partner(id)
+                );"""
+                 )
+
+    conn.execute("""CREATE TABLE IF NOT EXISTS blacklist (
+                id serial PRIMARY KEY,
+                people_id integer NOT NULL REFERENCES people(id),
+                partner_id integer NOT NULL REFERENCES partner(id)
+                );"""
+                 )
 
 
 def insert_user_info(user_info_list):
