@@ -5,7 +5,7 @@ from vk_api.upload import VkUpload
 import requests
 from io import BytesIO
 from VK_bot.VK import VkUser
-from bd.bd import update_user_info, add_to_black_list, add_to_favourite_list
+from bd.bd import update_user_info, add_to_black_list, add_to_favourite_list, create_table
 
 token = input('Token group: ')
 
@@ -35,6 +35,7 @@ def send_photo(vk, peer_id, owner_id, photo_id, access_key):
 
 
 def start(): # Входные данные: необходимо ввести имя пользователя или его id в ВК, для которого мы ищем пару.
+    create_table()
     global state, user_info
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
