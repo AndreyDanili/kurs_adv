@@ -13,6 +13,7 @@ vk = vk_api.VkApi(token=token)
 longpoll = VkLongPoll(vk)
 state = 'init'
 user_info = {}
+finish_users_list = []
 
 
 def write_msg(user_id, message):
@@ -34,41 +35,52 @@ def send_photo(vk, peer_id, owner_id, photo_id, access_key):
     vk.method('messages.send', {'peer_id': peer_id, 'attachment': attachment, 'random_id': randrange(10 ** 7), })
 
 
-def start(): # Входные данные: необходимо ввести имя пользователя или его id в ВК, для которого мы ищем пару.
+def send_all_info(finish_users_list, user_id, peer_id):
+    href_user = f"https://vk.com/id{finish_users_list[0]['id']}"
+    write_msg(user_id, f"{href_user}")
+    photos = VkUser.get_photo(VkUser(finish_users_list[0]['id']))
+    for photo_url in photos:
+        send_photo(vk, peer_id, *upload_photo(VkUpload(vk), photo_url['url']))
+    finish_users_list.pop(0)
+
+
+def start():
     create_table()
-    global state, user_info
+    global state, user_info, finish_users_list
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me:
                 request = event.text
                 if request == "привет":
                     write_msg(event.user_id, f"Привет, {event.user_id}")
-                elif request == "заново":
-                    state = 'init'
-                elif 'bl' in request:  # Черный список (в формате: bl people_id partner_id)
-                    add_to_black_list(request.split()[1], request.split()[2])
-                    write_msg(event.user_id, f"Пользователь ID{request.split()[2]} добавлен в черный список")
-                elif 'iz' in request:  # Список избранных (в формате: iz people_id partner_id)
-                    add_to_favourite_list(request.split()[1], request.split()[2])
-                    write_msg(event.user_id, f"Пользователь ID{request.split()[2]} добавлен в список избранных")
-                else:
-                    if state == 'bdate':
-                        user_info['bdate'] = request
-                        update_user_info(user_info['bdate'])
-                    if state == 'init':
-                        user_info = VkUser.get_user_info(VkUser(request))
+                elif request == "дальше":
+                    if finish_users_list:
+                        send_all_info(finish_users_list, event.user_id, event.peer_id)
+                        write_msg(event.user_id, f'Для вывода информации по следующему человеку введите "дальше"')
+                    else:
+                        write_msg(event.user_id, f"Вариантов больше нет")
+                elif 'блок' in request:  # Черный список (в формате: блок partner_id)
+                    add_to_black_list(event.user_id, request.split()[1])
+                    write_msg(event.user_id, f"Пользователь ID{request.split()[1]} добавлен в черный список")
+                elif 'избранный' in request:  # Список избранных (в формате: избранный partner_id)
+                    add_to_favourite_list(event.user_id, request.split()[1])
+                    write_msg(event.user_id, f"Пользователь ID{request.split()[1]} добавлен в список избранных")
+                if state == 'bdate':
+                    user_info['bdate'] = request
+                    update_user_info(user_info['bdate'])
+                    state = "bdate_ok"
+                if request == "старт" or state == "bdate_ok":
+                    if not state == "bdate_ok":
+                        user_info = VkUser.get_user_info(VkUser(event.user_id))
                     if len(user_info['bdate']) > 6:
                         state = 'init'
                         users_list = VkUser.get_search_users()
                         finish_users_list = VkUser.get_parametrize_users_list(user_info, users_list)
                         if len(finish_users_list) == 0:
                             write_msg(event.user_id, f"Вариантов больше нет")
-                        for user in finish_users_list:
-                            href_user = f"https://vk.com/id{user['id']}"
-                            write_msg(event.user_id, f"{href_user}")
-                            photos = VkUser.get_photo(VkUser(user['id']))
-                            for photo_url in photos:
-                                send_photo(vk, event.peer_id, *upload_photo(VkUpload(vk), photo_url['url']))
+                        else:
+                            send_all_info(finish_users_list, event.user_id, event.peer_id)
+                            write_msg(event.user_id, f'Для вывода информации следующего человека введите "дальше"')
                     else:
                         state = 'bdate'
-                        write_msg(event.user_id, f"Введите дату рождения в формате DD.MM.YYYY")
+                        write_msg(event.user_id, f"Введите дату рождения в формате MM.DD.YYYY")

@@ -4,7 +4,7 @@ import vk_api
 from random import randrange
 from bd.bd import insert_user_info, insert_partner_info, duplicate_partner, duplicate_people, black_list
 
-token_user = 'token_user'
+token_user = 'token_VK'
 vk_user = vk_api.VkApi(token=token_user)
 
 
@@ -25,8 +25,6 @@ class VkUser:
         return user_id['object_id']
 
     def get_user_info(self):
-        if not self.user_id.isdigit():
-            self.user_id = VkUser.get_user_id(VkUser(self.user_id))
         user = vk_user.method('users.get', {'user_ids': self.user_id,
                                             'fields': 'bdate, city, relation, sex',
                                             'random_id': randrange(10 ** 7)
@@ -78,8 +76,6 @@ class VkUser:
             users_list = users_list + request['items']
             offset += 1000
         return users_list
-
-
 
     @staticmethod
     def get_parametrize_users_list(user_info, users_list):
